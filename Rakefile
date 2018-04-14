@@ -1,30 +1,26 @@
-require 'aws-sdk'
+require 'aws-sdk-ec2'
 require 'colorize'
-
-# list of AWS regions
-$regions = [
-  'us-east-1',
-  'us-east-2',
-  'us-west-1',
-  'us-west-2',
-  'ca-central-1',
-  'eu-west-1',
-  'eu-central-1',
-  'eu-west-2',
-  'ap-northeast-1',
-  'ap-northeast-2',
-  'ap-southeast-1',
-  'ap-southeast-2',
-  'ap-south-1',
-  'sa-east-1'
-]
 #
 # Method Definitions
 ############################################################################################
+# list of AWS regions
+def list_regions
+  ec2 = Aws::EC2::Client.new(
+    region: 'eu-west-1'
+  )
+  regions = []
+  # list all AWS regions
+  regions_resp = ec2.describe_regions
+  regions_resp.regions.each do |region|
+    regions.push(region.region_name)
+  end
+  regions.sort!
+end
+
 def show_all_instances
-  # intialize empty hash to push to
-  regions_with_instances = {}
-  $regions.each do |region|
+  regions_with_instances = {} # intialize empty hash to push to
+  regions = list_regions # call list_regions def to build regions[]
+  regions.each do |region|
     # new client for every region
     ec2 = Aws::EC2::Client.new(
       region: region
@@ -59,5 +55,5 @@ end
 ############################################################################################
 desc 'List all Ec2 instances for all regions'
 task :list_all_instances do
-  show_all_instances()
+  show_all_instances
 end
